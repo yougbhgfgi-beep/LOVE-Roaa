@@ -1,0 +1,73 @@
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700&family=Cairo:wght@300;400;600;700&family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --accent-rgb: 244, 63, 94;
+}
+
+body {
+  margin: 0;
+  background: #0d0508;
+  color: #fce7f3;
+  direction: rtl;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+.arabic-name {
+  font-family: 'Amiri', 'Traditional Arabic', 'Scheherazade New', serif;
+  font-feature-settings: 'kern' 1, 'liga' 1;
+  text-rendering: optimizeLegibility;
+}
+
+.superscript-alef {
+  font-size: 0.65em;
+  position: relative;
+  top: -0.15em;
+  vertical-align: baseline;
+  line-height: 0;
+}
+
+.stars-animation {
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.15), transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255, 255, 255, 0.1), transparent),
+    radial-gradient(2px 2px at 50px 160px, rgba(255, 255, 255, 0.12), transparent),
+    radial-gradient(2px 2px at 90px 40px, rgba(255, 255, 255, 0.08), transparent),
+    radial-gradient(2px 2px at 130px 80px, rgba(255, 255, 255, 0.14), transparent),
+    radial-gradient(2px 2px at 160px 30px, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200px 200px;
+  animation: twinkle 4s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes petalFall {
+  0% { transform: translateY(-10vh) rotate(0deg); }
+  100% { transform: translateY(110vh) rotate(360deg); }
+}
+
+@keyframes petalSway {
+  0%, 100% { margin-left: 0; }
+  50% { margin-left: 30px; }
+}
+
+@keyframes floatUp {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0; }
+  20% { opacity: 0.6; }
+  50% { transform: translateY(-40px) scale(1.5); opacity: 0.4; }
+  80% { opacity: 0.2; }
+  100% { transform: translateY(-80px) scale(0.5); opacity: 0; }
+}
