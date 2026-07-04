@@ -1,5 +1,5 @@
 import { useRef, useState, useCallback, useEffect } from 'react'
-import { Heart, Lock, Download } from 'lucide-react'
+import { Heart, Lock, Download, X, Monitor, Smartphone } from 'lucide-react'
 import { HeroSection } from './HeroSection'
 import { GallerySection } from './GallerySection'
 import { MilestonesSection } from './MilestonesSection'
@@ -8,6 +8,37 @@ import { LoveStoryScene } from './LoveStoryScene'
 import { CountdownTimer } from './CountdownTimer'
 import { DividerLine } from './DividerLine'
 
+function InstallGuide({ onClose }) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-6" onClick={onClose}>
+      <div className="bg-[#16070c] border border-rose-900/30 rounded-2xl p-6 max-w-sm w-full shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-serif text-rose-100">تثبيت التطبيق</h3>
+          <button onClick={onClose} className="text-rose-400/50 hover:text-rose-300"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="space-y-4 text-sm text-rose-200/80">
+          {isIOS ? (
+            <>
+              <div className="flex items-center gap-3"><Smartphone className="w-5 h-5 text-rose-400 flex-shrink-0" /><span>افتح Safari (ليس Chrome)</span></div>
+              <div className="flex items-center gap-3"><Monitor className="w-5 h-5 text-rose-400 flex-shrink-0" /><span>اضغط زر المشاركة <span className="text-rose-300">⬆️</span></span></div>
+              <div className="flex items-center gap-3"><Download className="w-5 h-5 text-rose-400 flex-shrink-0" /><span>اختر <b>Add to Home Screen</b> (إضافة للشاشة الرئيسية)</span></div>
+              <div className="flex items-center gap-3"><Heart className="w-5 h-5 text-rose-400 flex-shrink-0" /><span>سيصبح التطبيق كأنه برنامج مستقل على جهازك!</span></div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-3"><Smartphone className="w-5 h-5 text-rose-400 flex-shrink-0" /><span>افتح Chrome على أندرويد</span></div>
+              <div className="flex items-center gap-3"><Download className="w-5 h-5 text-rose-400 flex-shrink-0" /><span>اضغط زر النقاط الثلاث <span className="text-rose-300">⋮</span> (القائمة)</span></div>
+              <div className="flex items-center gap-3"><Monitor className="w-5 h-5 text-rose-400 flex-shrink-0" /><span>اختر <b>Install app</b> (تثبيت التطبيق)</span></div>
+              <div className="flex items-center gap-3"><Heart className="w-5 h-5 text-rose-400 flex-shrink-0" /><span>سيظهر التطبيق على الشاشة الرئيسية كبرنامج مستقل!</span></div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function MainPage({ config, timeLeft, timerMode, onEnd, audioRef }) {
   const { main, gallery, milestones } = config
   const [isPlaying, setIsPlaying] = useState(false)
@@ -15,6 +46,7 @@ export function MainPage({ config, timeLeft, timerMode, onEnd, audioRef }) {
   const [freqs, setFreqs] = useState(() => new Array(16).fill(3))
   const [deferredPrompt, setDeferredPrompt] = useState(null)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [showInstallGuide, setShowInstallGuide] = useState(false)
   const ctxRef = useRef(null)
   const srcRef = useRef(null)
   const rafRef = useRef(null)
@@ -32,12 +64,15 @@ export function MainPage({ config, timeLeft, timerMode, onEnd, audioRef }) {
   }, [])
 
   const handleInstall = useCallback(() => {
-    if (!deferredPrompt) return
-    deferredPrompt.prompt()
-    deferredPrompt.userChoice.then(() => {
-      setDeferredPrompt(null)
-      setIsInstalled(true)
-    })
+    if (deferredPrompt) {
+      deferredPrompt.prompt()
+      deferredPrompt.userChoice.then(() => {
+        setDeferredPrompt(null)
+        setIsInstalled(true)
+      })
+    } else {
+      setShowInstallGuide(true)
+    }
   }, [deferredPrompt])
 
   useEffect(() => {
@@ -114,9 +149,10 @@ export function MainPage({ config, timeLeft, timerMode, onEnd, audioRef }) {
         </div>
 
         <div className="flex items-center gap-3">
-          {deferredPrompt && !isInstalled && (
-            <button onClick={handleInstall} className="text-rose-400/60 hover:text-rose-300 transition-colors" title="تثبيت التطبيق">
-              <Download className="w-4 h-4" />
+          {!isInstalled && (
+            <button onClick={handleInstall} className="text-rose-400/60 hover:text-rose-300 transition-colors flex items-center gap-1.5 bg-rose-950/40 hover:bg-rose-900/40 px-2.5 py-1.5 rounded-lg border border-rose-900/20 text-[11px]" title="تثبيت التطبيق">
+              <Download className="w-3.5 h-3.5" />
+              تثبيت
             </button>
           )}
           <button
@@ -203,7 +239,16 @@ export function MainPage({ config, timeLeft, timerMode, onEnd, audioRef }) {
           {main.footerText}
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6 relative z-10">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6 relative z-10">
+          {!isInstalled && (
+            <button
+              onClick={handleInstall}
+              className="inline-flex items-center gap-3 bg-gradient-to-b from-rose-600 to-rose-800 hover:from-rose-500 hover:to-rose-700 px-8 py-4 rounded-xl text-white text-sm tracking-widest transition-all duration-500 shadow-xl group hover:scale-105 border border-rose-400/20"
+            >
+              <Download className="w-4 h-4" />
+              تثبيت التطبيق
+            </button>
+          )}
           <button
             onClick={onEnd}
             className="inline-flex items-center gap-3 bg-gradient-to-b from-[#1f0a12] to-[#0d0508] border border-rose-500/30 hover:border-rose-400/60 px-8 py-4 rounded-xl hover:text-rose-100 text-sm tracking-widest uppercase transition-all duration-500 shadow-xl group hover:scale-105"
@@ -211,13 +256,14 @@ export function MainPage({ config, timeLeft, timerMode, onEnd, audioRef }) {
             <Lock className="w-4 h-4 text-rose-400 group-hover:text-rose-300 transition-colors" />
             {main.footerButton}
           </button>
-
         </div>
 
         <div className="mt-16 text-[10px] text-rose-500/50 tracking-wider relative z-10">
           {main.footerTag}
         </div>
       </footer>
+
+      {showInstallGuide && <InstallGuide onClose={() => setShowInstallGuide(false)} />}
     </div>
   )
 }
