@@ -1,7 +1,6 @@
-import { useRef } from 'react'
-import { Heart } from 'lucide-react'
+import { memo, useRef } from 'react'
 
-export function VideoSection({ title, subtitle, videoUrl }) {
+export const VideoSection = memo(function VideoSection({ title, subtitle, videoUrl, onPlay, onPause, onEnded }) {
   const videoRef = useRef(null)
 
   return (
@@ -30,8 +29,11 @@ export function VideoSection({ title, subtitle, videoUrl }) {
           playsInline
           webkit-playsinline="true"
           preload="metadata"
+          onPlay={onPlay}
+          onPause={onPause}
+          onEnded={onEnded}
         />
       </div>
     </section>
   )
-}
+})

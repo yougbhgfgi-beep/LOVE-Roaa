@@ -1,5 +1,5 @@
-import { useRef, useState, useCallback } from 'react'
-import { Heart, Lock } from 'lucide-react'
+import { useRef, useState, useCallback, useEffect } from 'react'
+import { Heart, Lock, Download } from 'lucide-react'
 import { HeroSection } from './HeroSection'
 import { GallerySection } from './GallerySection'
 import { MilestonesSection } from './MilestonesSection'
@@ -12,6 +12,67 @@ export function MainPage({ config, timeLeft, timerMode, onEnd, audioRef }) {
   const { main, gallery, milestones } = config
   const [isPlaying, setIsPlaying] = useState(false)
   const [showEqualizer, setShowEqualizer] = useState(true)
+  const [freqs, setFreqs] = useState(() => new Array(16).fill(3))
+  const [deferredPrompt, setDeferredPrompt] = useState(null)
+  const [isInstalled, setIsInstalled] = useState(false)
+  const ctxRef = useRef(null)
+  const srcRef = useRef(null)
+  const rafRef = useRef(null)
+
+  useEffect(() => {
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsInstalled(true)
+    }
+    const handler = (e) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
+
+  const handleInstall = useCallback(() => {
+    if (!deferredPrompt) return
+    deferredPrompt.prompt()
+    deferredPrompt.userChoice.then(() => {
+      setDeferredPrompt(null)
+      setIsInstalled(true)
+    })
+  }, [deferredPrompt])
+
+  useEffect(() => {
+    const audio = audioRef.current
+    if (!audio || !showEqualizer) {
+      rafRef.current && cancelAnimationFrame(rafRef.current)
+      return
+    }
+    if (!ctxRef.current) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      ctxRef.current = ctx
+    }
+    const ctx = ctxRef.current
+    if (ctx.state === 'suspended') ctx.resume()
+    if (!srcRef.current) {
+      const src = ctx.createMediaElementSource(audio)
+      const an = ctx.createAnalyser()
+      an.fftSize = 64
+      src.connect(an)
+      an.connect(ctx.destination)
+      srcRef.current = { src, an }
+    }
+    const an = srcRef.current.an
+    const buf = new Uint8Array(an.frequencyBinCount)
+    const tick = () => {
+      an.getByteFrequencyData(buf)
+      setFreqs(Array.from({ length: 16 }, (_, i) => {
+        const idx = Math.floor((i / 16) * buf.length)
+        return Math.max(2, (buf[idx] / 255) * 14 + 2)
+      }))
+      rafRef.current = requestAnimationFrame(tick)
+    }
+    tick()
+    return () => rafRef.current && cancelAnimationFrame(rafRef.current)
+  }, [showEqualizer, audioRef])
 
   const toggleAudio = useCallback(() => {
     const audio = audioRef.current
@@ -52,7 +113,12 @@ export function MainPage({ config, timeLeft, timerMode, onEnd, audioRef }) {
           <span className="font-serif tracking-wider text-sm">Our Love Story</span>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {deferredPrompt && !isInstalled && (
+            <button onClick={handleInstall} className="text-rose-400/60 hover:text-rose-300 transition-colors" title="تثبيت التطبيق">
+              <Download className="w-4 h-4" />
+            </button>
+          )}
           <button
             onClick={toggleAudio}
             className="text-rose-400/60 hover:text-rose-300 transition-colors"
@@ -74,16 +140,8 @@ export function MainPage({ config, timeLeft, timerMode, onEnd, audioRef }) {
 
           {/* Audio equalizer */}
           <div className="flex items-end gap-[2px] h-5" style={{ direction: 'ltr' }}>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16].map((i) => (
-              <div
-                key={i}
-                className="w-[2.5px] bg-rose-400/60 rounded-full"
-                style={{
-                  height: `${Math.max(3, Math.sin(i * 0.8) * 8 + 10)}px`,
-                  animation: `equalizer 0.45s ease-in-out ${i * 0.05}s infinite alternate`,
-                  transformOrigin: 'bottom',
-                }}
-              />
+            {freqs.map((h, i) => (
+              <div key={i} className="w-[2.5px] bg-rose-400/60 rounded-full" style={{ height: `${h}px`, transformOrigin: 'bottom' }} />
             ))}
           </div>
         </div>
@@ -118,6 +176,9 @@ export function MainPage({ config, timeLeft, timerMode, onEnd, audioRef }) {
         title={main.videoTitle}
         subtitle={main.videoSubtitle}
         videoUrl={main.videoUrl}
+        onPlay={handleVideoPlay}
+        onPause={handleVideoPause}
+        onEnded={handleVideoEnd}
       />
 
       <DividerLine />
