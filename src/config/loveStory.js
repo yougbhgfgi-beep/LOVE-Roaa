@@ -48,7 +48,7 @@ export const CONFIG = {
     footerTag: '🔒 عهد الحب الأبدي — ٢٠٢٦',
   },
   share: {
-    url: 'https://love-link.app',
+    url: 'https://yougbhgfgi-beep.github.io/LOVE-Roaa/',
     label: 'رابط قصير قابل للمشاركة',
     message: '💕 قصة حب من الكنترول للكنترول.. مدرس عربي ومعلمة إنجليزي، قلبين التقوا صدفة وبقوا سوى للأبد 💕\n\nافتتحي الرابط ده عشان تشوفي قصة حبنا:',
   },
